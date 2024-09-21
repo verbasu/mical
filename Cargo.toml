@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 ical = { version = "0.11.0", features = ["ical", "generator"] }
+regex = "1.10.6"
