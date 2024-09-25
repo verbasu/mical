@@ -56,34 +56,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_path = "/home/ikichigai/.local/share/calcurse/apts";
 
     let appointments = parse_appointments(file_path)?;
+    let mut aid: usize = 0;
+    for appointment in appointments.iter() {
+        println!("{} - {:?}", aid, appointment.description);
+        aid += 1;
+    }
+
+    let mut buffer = String::new();
+    let stdin = std::io::stdin();
+    stdin.read_line(&mut buffer)?;
+    let selected: usize = buffer.trim().parse().expect("Input not an integer");
+
+    let appointment = &appointments[selected];
 
     let mut cal = IcalCalendarBuilder::version("2.0")
         .gregorian()
         .prodid("-//ical-rs//github.com//")
         .build();
 
-    println!("Parsed Appointments:");
-
-    for appointment in appointments.iter() {
-        let event = IcalEventBuilder::tzid("Europe/London")
-            .uid(Uuid::new_v4())
-            .changed(Local::now().format("%Y%m%dT%H%M%S").to_string())
-            .start(
-                appointment
-                    .date_time_start
-                    .format("%Y%m%dT%H%M%S")
-                    .to_string(),
-            )
-            .end(
-                appointment
-                    .date_time_end
-                    .format("%Y%m%dT%H%M%S")
-                    .to_string(),
-            )
-            .set(ical_property!("SUMMARY", appointment.description.clone()))
-            .build();
-        cal.events.push(event);
-    }
+    let event = IcalEventBuilder::tzid("Europe/Moscow")
+        .uid(Uuid::new_v4())
+        .changed(Local::now().format("%Y%m%dT%H%M%S").to_string())
+        .start(
+            appointment
+                .date_time_start
+                .format("%Y%m%dT%H%M%S")
+                .to_string(),
+        )
+        .end(
+            appointment
+                .date_time_end
+                .format("%Y%m%dT%H%M%S")
+                .to_string(),
+        )
+        .set(ical_property!("SUMMARY", appointment.description.clone()))
+        .build();
+    cal.events.push(event);
     print!("{}", cal.generate());
     Ok(())
 }
